@@ -1,5 +1,5 @@
-var mmq = require('./lib/index');
-var sleep = require('./lib/sleep');
+var mmq = require('../lib/index');
+var sleep = require('../lib/sleep');
 (async function name(params) {
     var mq = new mmq("mongodb://localhost/mq", "test");
     mq.setTag("蚊子");
