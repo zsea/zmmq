@@ -26,7 +26,7 @@ zmmq使用mongodb进行消息存储，各客户端使用轮询的方式进行队
 
 ```javascript
 var zmmq=require('zmmq');
-var queue=new mmq(url, name);
+var queue=new zmmq(url, name);
 ```
 * ```url```: mongodb的连接字符串，示例值：```mongodb://localhost/mq```。
 * ```name```: 队列名称，示例值：```test```。
@@ -153,4 +153,38 @@ await trans.Rollback();
 
 ```javascript
 queue.setTag("xyz");
+
 ```
+
+# 消息和事务超时
+
+## 消息处理超时
+
+当消息处理超时时，需要重新设置消息状态，便于下一次处理。
+
+```javascript
+await zmmq.Restore(options)
+```
+
+### 参数
+
+ * {string} options.connstring - 连接字符串
+ * {Number} [options.timeout] - 消息处理超时时间，单位分钟，默认10分钟
+ * {string[]} options.queues - 需要处理超时的队列，必填
+ * {Number} [options.interval] - 每轮的间隔时间，单位毫秒，默认60000
+
+## 事务超时
+
+以超时的方式监控异常的事务，并调对数据进行恢复。
+
+```javascript
+var trans=require('zmmq/lib/transaction');
+await trans.Restore(options);
+```
+
+### 参数
+
+ * {string} options.connstring - 连接字符串
+ * {Number} [options.timeout] - 事务超时时间，单位分钟，默认10分钟
+ * {string} [options.trans] - 存储事务的集合名称，默认_trans
+ * {Number} [options.interval] - 每轮的间隔时间，单位毫秒，默认60000
