@@ -7,8 +7,8 @@ var sleep = require('../lib/sleep');
     for (let i = 0; i < 10; i++) {
         //await trans.push(i,{tag:i<5?"海海":"蚊子"});
         await trans.push("levle", { level: 10 });
-        await sleep(1000);
-        break;
+        //await sleep(1000);
+        //break;
     }
 
     await trans.Commit();
