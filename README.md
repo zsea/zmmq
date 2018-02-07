@@ -34,8 +34,10 @@ var queue=new zmmq(url, name);
 ### 发布一个消息
 
 ```javascript
-await queue.push(msg,options,queue)
+var msg_id=await queue.push(msg,options,queue)
 ```
+
+push方法返回一个消息id
 
 #### 参数描述
 
@@ -93,14 +95,6 @@ await queue.done(id);
 
 * ```id```:需要确认的消息id
 
-### options
-
-该参数在发布消息时进行设置，指定消息的属性，可指定的属性如下：
-
-* ```level```:消息优先级，值越大优先级越高。
-* ```groupid```:消息分组id，可不指定。
-* ```start```:消息什么时候才允许处理，值为unix时间戳,当当前时间大于该值时，消息才会出队。
-* ```tag```:消息tag，当zmmq实例指定tag属性时，优先处理tag匹配的消息。
 
 ## 事务
 
@@ -115,10 +109,10 @@ var trans=await queue.Begin();
 ### 发布消息
 
 ```javascript
-await trans.push(msg,options,queue);
-await trans.push(msg,options,queue);
+var msg_id1=await trans.push(msg,options,queue);
+var msg_id2=await trans.push(msg,options,queue);
 //...
-await trans.push(msg,options,queue);
+var msg_idn=await trans.push(msg,options,queue);
 await trans.Commit();
 ```
 
@@ -188,3 +182,44 @@ await trans.Restore(options);
  * {Number} [options.timeout] - 事务超时时间，单位分钟，默认10分钟
  * {string} [options.trans] - 存储事务的集合名称，默认_trans
  * {Number} [options.interval] - 每轮的间隔时间，单位毫秒，默认60000
+
+# 父子队列
+
+父子队列仅在事务中实现。
+
+## 什么是父子队列
+
+具有父子关系的队列，只有当子队列中的所有任务都完成后，父队列中相关的消息才会出列被执行。
+
+通常情况下，一个父队列具有多个子队列。
+
+## 发布消息
+
+由于需要同时发布多个消息到队列，需要使用事务的特性。
+
+```javascript
+//子队列中的消息
+await trans.push(msg,options,queue);
+await trans.push(msg,options,queue);
+//父队列的消息
+await trans.push(msg,options,queue);
+await trans.Commit();
+```
+
+## 确认消息
+
+当属于子队列的消息完成事，必须使用事务的方式进行确认。
+
+# options
+
+该参数在发布消息时进行设置，指定消息的属性，可指定的属性如下：
+
+* ```level```:消息优先级，值越大优先级越高。
+* ```groupid```:消息分组id，可不指定。
+* ```start```:消息什么时候才允许处理，值为unix时间戳,当当前时间大于该值时，消息才会出队。
+* ```tag```:消息tag，当zmmq实例指定tag属性时，优先处理tag匹配的消息。
+
+以下属性仅对父子队列有效，且只能用于事务中：
+
+* ```father```:父队列信息，格式为：```{queue}:{id}```,```queue```为父队列名称,```id```为父队列中消息对应的消息id。
+* ```children```:若当前消息为父队列中的消息，请定当前参数设置其所相关的子队列消息信息。参数类型为数组。每个元素格式为：```{queue}:{id}```,```queue```为子队列名称,```id```为子队列中消息对应的消息id。
