@@ -197,18 +197,21 @@ await trans.Restore(options);
 
 由于需要同时发布多个消息到队列，需要使用事务的特性。
 
+在发布是，通过```options```参数指定消息的父队列关系
+
 ```javascript
-//子队列中的消息
-await trans.push(msg,options,queue);
-await trans.push(msg,options,queue);
-//父队列的消息
-await trans.push(msg,options,queue);
+//发布消息到父队列
+let fid=trans.push(msg,options,"father");
+//布消息到子队列，并关联父队列中的消息
+await trans.push(msg,{fahter:"father:"+fid},queue);
+await trans.push(msg,{fahter:"father:"+fid},queue);
+await trans.push(msg,{fahter:"father:"+fid},queue);
 await trans.Commit();
 ```
 
 ## 确认消息
 
-当属于子队列的消息完成时，必须使用事务的方式进行确认。
+和普通消息确认相同。
 
 # options
 
@@ -219,7 +222,6 @@ await trans.Commit();
 * ```start```:消息什么时候才允许处理，值为unix时间戳,当当前时间大于该值时，消息才会出队。
 * ```tag```:消息tag，当zmmq实例指定tag属性时，优先处理tag匹配的消息。
 
-以下属性仅对父子队列有效，且只能用于事务中：
+以下属性仅对父子队列有效，建议在事务中使用：
 
 * ```father```:父队列信息，格式为：```{queue}:{id}```,```queue```为父队列名称,```id```为父队列中消息对应的消息id。
-* ```children```:若当前消息为父队列中的消息，请定当前参数设置其所相关的子队列消息信息。参数类型为数组。每个元素格式为：```{queue}:{id}```,```queue```为子队列名称,```id```为子队列中消息对应的消息id。
