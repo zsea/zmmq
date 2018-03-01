@@ -26,10 +26,11 @@ zmmq使用mongodb进行消息存储，各客户端使用轮询的方式进行队
 
 ```javascript
 var zmmq=require('zmmq');
-var queue=new zmmq(url, name);
+var queue=new zmmq(url, name,options);
 ```
 * ```url```: mongodb的连接字符串，示例值：```mongodb://localhost/mq```。
 * ```name```: 队列名称，示例值：```test```。
+* ```options.done_mode```:消息完成的处理方式，可选值：DEL/SUCCESS，删除消息和标识为已完成，默认值为：SUCCESS。
 
 ### 发布一个消息
 
@@ -66,7 +67,9 @@ var msg=await queue.pull(ms);
     id: ObjectId,
     body: Object,
     done: function,
-    groupid:String
+    groupid:String,
+    level:Number,
+    tag:String
 }
 ```
 
@@ -74,6 +77,8 @@ var msg=await queue.pull(ms);
 * ```body```:消息内容
 * ```done```:消息确认函数
 * ```groupid```:消息分组，可能为空。
+* ```level```:消息优先级。
+* ```tag```:消息标签。
 
 ### 确认一个消息
 
